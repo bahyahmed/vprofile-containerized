@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+
+  ##################################
+  # 🐬 MySQL 8.0.33 — Database Layer
+  ##################################
+  vprodb:
+    image: mysql:8.0.33
+    container_name: vprodb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: vprodbpass
+      MYSQL_DATABASE: accounts
+    volumes:
+      - ./Docker-files/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./Docker-files/db/db_backup.sql:/docker-entrypoint-initdb.d/db_backup.sql
+      - vprodb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - vprofile-network
+
+  ##################################
+  # 🐘 Memcached — Caching Layer
+  ##################################
+  vprocache01:
+    image: memcached:latest
+    container_name: vprocache01
+    ports:
+      - "11211:11211"
+    networks:
+      - vprofile-network
+
+  ##################################
+  # 📨 RabbitMQ — Messaging Layer
+  ##################################
+  vpromq01:
+    image: rabbitmq:3-management
+    container_name: vpromq01
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - vprofile-network
+
+  ##################################
+  # 🌐 App — Java WAR on Tomcat
+  ##################################
+  vprofile-app:
+    build:
+      context: ./Docker-files/app
+    image: bebo998/vprofile-app:latest
+    container_name: vprofile-app
+    restart: unless-stopped
+    depends_on:
+      - vprodb
+      - vprocache01
+      - vpromq01
+    ports:
+      - "8080:8080"
+    networks:
+      - vprofile-network
+
+  ##################################
+  # 🌐 Nginx — Reverse Proxy Layer
+  ##################################
+  vpro-nginx:
+    build:
+      context: ./Docker-files/web
+    image: bebo998/vpro-nginx:latest
+    container_name: vpro-nginx
+    restart: unless-stopped
+    depends_on:
+      - vprofile-app
+    ports:
+      - "80:80"
+    networks:
+      - vprofile-network
+
+#######################################
+# 📦 NAMED VOLUMES
+#######################################
+volumes:
+  vprodb_data:
+
+#######################################
+# 🌐 NETWORK
+#######################################
+networks:
+  vprofile-network:
+    driver: bridge

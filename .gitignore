@@ -1,0 +1,17 @@
+# Ignore build artifacts
+target/
+*.class
+*.war
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Vagrant internals
+.vagrant/
+
+# Logs and environment files
+*.log
+.env
+
