@@ -6,6 +6,14 @@ It serves as a great example for DevOps practice, CI/CD workflows, container orc
 
 ---
 
+
+## 🧭 Architecture Overview
+
+The following diagram illustrates the end-to-end Docker workflow used to containerize and orchestrate the vProfile multi-tier Java application:
+
+![vProfile Docker Architecture](assets/architecture.png)
+
+
 ##  Application Overview
 
 The `vProfile` app simulates a real-world online banking or account management system. It consists of:
